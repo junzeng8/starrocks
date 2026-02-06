@@ -82,7 +82,7 @@ LoadChannel::~LoadChannel() {
 void LoadChannel::open(brpc::Controller* cntl, const PTabletWriterOpenRequest& request,
                        PTabletWriterOpenResult* response, google::protobuf::Closure* done) {
     _span->AddEvent("open_index", {{"index_id", request.index_id()}});
-    auto scoped = trace::Scope(_span);
+    auto scoped = ScopedSpan(_span);
     ClosureGuard done_guard(done);
 
     _last_updated_time.store(time(nullptr), std::memory_order_relaxed);
@@ -218,7 +218,7 @@ void LoadChannel::cancel() {
 
 void LoadChannel::abort() {
     _span->AddEvent("cancel");
-    auto scoped = trace::Scope(_span);
+    auto scoped = ScopedSpan(_span);
     std::lock_guard l(_lock);
     for (auto& it : _tablets_channels) {
         it.second->abort();

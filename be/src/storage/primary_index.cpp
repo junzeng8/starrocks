@@ -1171,7 +1171,7 @@ Status PrimaryIndex::_do_load(Tablet* tablet) {
     _table_id = tablet->belonged_table_id();
     _tablet_id = tablet->tablet_id();
     auto span = Tracer::Instance().start_trace_tablet("primary_index_load", tablet->tablet_id());
-    auto scoped_span = trace::Scope(span);
+    auto scoped_span = ScopedSpan(span);
     MonotonicStopWatch timer;
     timer.start();
 

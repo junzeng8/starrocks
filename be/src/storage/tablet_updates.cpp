@@ -614,7 +614,7 @@ Status TabletUpdates::get_apply_version_and_rowsets(int64_t* version, std::vecto
 
 Status TabletUpdates::rowset_commit(int64_t version, const RowsetSharedPtr& rowset, uint32_t wait_time) {
     auto span = Tracer::Instance().start_trace("rowset_commit");
-    auto scope_span = trace::Scope(span);
+    auto scope_span = ScopedSpan(span);
     if (_error) {
         return Status::InternalError(
                 strings::Substitute("rowset_commit failed, tablet updates is in error state: tablet:$0 $1",
@@ -705,7 +705,7 @@ Status TabletUpdates::_rowset_commit_unlocked(int64_t version, const RowsetShare
     auto span =
             Tracer::Instance().start_trace_txn_tablet("rowset_commit_unlocked", rowset->txn_id(), _tablet.tablet_id());
     span->SetAttribute("version", version);
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
     EditVersionMetaPB edit;
     auto edit_version_pb = edit.mutable_version();
     edit_version_pb->set_major_number(version);
@@ -1036,7 +1036,7 @@ Status TabletUpdates::_apply_column_partial_update_commit(const EditVersionInfo&
                                                           const RowsetSharedPtr& rowset) {
     CHECK_MEM_LIMIT("TabletUpdates::_apply_column_partial_update_commit");
     auto span = Tracer::Instance().start_trace_tablet("apply_column_partial_update_commit", _tablet.tablet_id());
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
     Status apply_st;
 
     auto tablet_id = _tablet.tablet_id();
@@ -1247,7 +1247,7 @@ bool TabletUpdates::check_delta_column_generate_from_version(EditVersion begin_v
 Status TabletUpdates::_apply_normal_rowset_commit(const EditVersionInfo& version_info, const RowsetSharedPtr& rowset) {
     CHECK_MEM_LIMIT("TabletUpdates::_apply_normal_rowset_commit");
     auto span = Tracer::Instance().start_trace_tablet("apply_rowset_commit", _tablet.tablet_id());
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
     Status apply_st;
 
     FAIL_POINT_TRIGGER_RETURN(tablet_apply_normal_rowset_commit_internal_error,
@@ -2062,7 +2062,7 @@ Status TabletUpdates::_check_conflict_with_partial_update(CompactionInfo* info) 
 Status TabletUpdates::_commit_compaction(std::unique_ptr<CompactionInfo>* pinfo, const RowsetSharedPtr& rowset,
                                          EditVersion* commit_version) {
     auto span = Tracer::Instance().start_trace_tablet("commit_compaction", _tablet.tablet_id());
-    auto scoped_span = trace::Scope(span);
+    auto scoped_span = ScopedSpan(span);
     _compaction_state = std::make_unique<CompactionState>();
     if (!config::enable_light_pk_compaction_publish) {
         // Skip load compaction state when enable light pk compaction
@@ -2215,7 +2215,7 @@ Status TabletUpdates::_apply_compaction_commit(const EditVersionInfo& version_in
     const bool use_light_apply_compaction = _use_light_apply_compaction(output_rowset);
     auto scope = IOProfiler::scope(IOProfiler::TAG_COMPACTION, _tablet.tablet_id());
     DeferOp defer([&]() { _compaction_running = false; });
-    auto scoped_span = trace::Scope(Tracer::Instance().start_trace_tablet("apply_compaction", _tablet.tablet_id()));
+    auto scoped_span = ScopedSpan(Tracer::Instance().start_trace_tablet("apply_compaction", _tablet.tablet_id()));
     // NOTE: after commit, apply must success or fatal crash
     auto info = version_info.compaction.get();
     CHECK(info != nullptr) << "compaction info empty";

@@ -237,7 +237,7 @@ Status CompactionAction::_handle_compaction(HttpRequest* req, std::string* json_
         return Status::TooManyTasks("Manual compaction task is running");
     }
     DeferOp defer([&]() { _running = false; });
-    auto scoped_span = trace::Scope(Tracer::Instance().start_trace("http_handle_compaction"));
+    auto scoped_span = ScopedSpan(Tracer::Instance().start_trace("http_handle_compaction"));
 
     uint64_t tablet_id;
     RETURN_IF_ERROR(get_params(req, &tablet_id));

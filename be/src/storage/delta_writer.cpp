@@ -682,7 +682,7 @@ Status DeltaWriter::commit() {
     } else {
         span = Tracer::Instance().start_trace_txn_tablet("delta_writer_commit", _opt.txn_id, _opt.tablet_id);
     }
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
     SCOPED_THREAD_LOCAL_MEM_SETTER(_mem_tracker, false);
     auto state = get_state();
     switch (state) {

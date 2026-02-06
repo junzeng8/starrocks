@@ -59,7 +59,7 @@ void run_publish_version_task(ThreadPoolToken* token, const TPublishVersionReque
     Span span = Tracer::Instance().start_trace_or_add_span("run_publish_version_task",
                                                            publish_version_req.txn_trace_parent);
     span->SetAttribute("txn_id", transaction_id);
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
 
     bool enable_sync_publish = publish_version_req.enable_sync_publish;
     std::vector<TabletPublishVersionTask> tablet_tasks;
@@ -120,7 +120,7 @@ void run_publish_version_task(ThreadPoolToken* token, const TPublishVersionReque
             st = token->submit_func([&]() {
                 auto& task = tablet_task;
                 auto tablet_span = Tracer::Instance().add_span("tablet_publish_txn", span);
-                auto scoped_tablet_span = trace::Scope(tablet_span);
+                auto scoped_tablet_span = ScopedSpan(tablet_span);
                 tablet_span->SetAttribute("txn_id", transaction_id);
                 tablet_span->SetAttribute("tablet_id", task.tablet_id);
                 tablet_span->SetAttribute("version", task.version);

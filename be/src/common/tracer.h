@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <opentelemetry/trace/scope.h>
 #include <opentelemetry/trace/span.h>
 #include <opentelemetry/trace/span_context.h>
@@ -95,5 +97,31 @@ private:
 };
 
 void shutdown_tracer();
+
+// Safe wrapper for trace::Scope that avoids TLS memory leak when tracing is disabled.
+// When jaeger_endpoint is not configured, trace::Scope still writes to Thread Local Storage,
+// causing memory accumulation in long-running thread pools. This wrapper skips the
+// trace::Scope creation entirely when tracing is disabled.
+class ScopedSpan {
+public:
+    explicit ScopedSpan(const Span& span) {
+        if (Tracer::Instance().is_enabled() && span) {
+            _scope = std::make_unique<trace::Scope>(span);
+        }
+    }
+
+    ~ScopedSpan() = default;
+
+    // Non-copyable
+    ScopedSpan(const ScopedSpan&) = delete;
+    ScopedSpan& operator=(const ScopedSpan&) = delete;
+
+    // Movable
+    ScopedSpan(ScopedSpan&&) = default;
+    ScopedSpan& operator=(ScopedSpan&&) = default;
+
+private:
+    std::unique_ptr<trace::Scope> _scope;
+};
 
 } // namespace starrocks

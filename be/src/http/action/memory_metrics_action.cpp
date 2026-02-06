@@ -29,7 +29,7 @@ namespace starrocks {
 
 void MemoryMetricsAction::handle(HttpRequest* req) {
     LOG(INFO) << "Start collect memory metrics.";
-    auto scoped_span = trace::Scope(Tracer::Instance().start_trace("http_handle_memory_metrics"));
+    auto scoped_span = ScopedSpan(Tracer::Instance().start_trace("http_handle_memory_metrics"));
     MemTracker* process_mem_tracker = GlobalEnv::GetInstance()->process_mem_tracker();
     std::stringstream result;
     std::vector<std::string> metric_labels_to_print = {"process",

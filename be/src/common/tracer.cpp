@@ -62,8 +62,11 @@ void Tracer::init(const std::string& service_name) {
         const auto provider = opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
                 new opentelemetry::sdk::trace::TracerProvider(std::move(processor), jaeger_resource));
         _tracer = provider->GetTracer(service_name, OPENTELEMETRY_SDK_VERSION);
+        LOG(INFO) << "Tracer initialized with Jaeger exporter, endpoint: " << config::jaeger_endpoint;
     } else {
         _tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("no-op", OPENTELEMETRY_SDK_VERSION);
+        LOG(INFO) << "Tracer initialized with no-op tracer (jaeger_endpoint not configured)";
+
     }
 }
 

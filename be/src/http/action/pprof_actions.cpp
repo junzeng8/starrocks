@@ -99,7 +99,7 @@ void ProfileAction::handle(HttpRequest* req) {
     HttpChannel::send_reply(req, str);
 #else
     std::lock_guard<std::mutex> lock(kPprofActionMutex);
-    auto scoped_span = trace::Scope(Tracer::Instance().start_trace("http_handle_profile"));
+    auto scoped_span = ScopedSpan(Tracer::Instance().start_trace("http_handle_profile"));
 
     int seconds = kPprofDefaultSampleSecs;
     const std::string& seconds_str = req->param(SECOND_KEY);
@@ -133,7 +133,7 @@ static std::mutex kIOPprofActionMutex;
 
 void IOProfileAction::handle(HttpRequest* req) {
     std::lock_guard<std::mutex> lock(kIOPprofActionMutex);
-    auto scoped_span = trace::Scope(Tracer::Instance().start_trace("http_handle_io_profile"));
+    auto scoped_span = ScopedSpan(Tracer::Instance().start_trace("http_handle_io_profile"));
 
     int seconds = 10;
     const std::string& seconds_str = req->param(SECOND_KEY);

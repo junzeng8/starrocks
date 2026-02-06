@@ -672,7 +672,7 @@ StatusOr<RowsetSharedPtr> HorizontalRowsetWriter::build() {
 Status HorizontalRowsetWriter::_final_merge() {
     DCHECK(_context.schema_change_sorting);
     auto span = Tracer::Instance().start_trace_txn_tablet("final_merge", _context.txn_id, _context.tablet_id);
-    auto scoped = trace::Scope(span);
+    auto scoped = ScopedSpan(span);
     MonotonicStopWatch timer;
     timer.start();
 
